@@ -1409,7 +1409,7 @@ function canProceed(){
     case 3:return ST.scatterShown;
     case 4:return ST.s4done;
     case 5:return ST.aiPredicted&&ST.aiAsked;
-    case 6:return ST.threshCrossed&&ST.pushedA&&ST.pushedB;
+    case 6:return ST.threshCrossed;
     case 7:return ST.checklist.every(Boolean)&&ST.summary.trim().length>=1;
   }
   return false;
@@ -1903,6 +1903,7 @@ function a6(c){
 
   drawChart6(d6,ari6,minH,maxH);
   updateTrack(ST.sliderVal);
+  if(ST.sliderVal>=THRESHOLD)ST.threshCrossed=true;
 
   /* Slider */
   var sl=document.getElementById('pslider');
@@ -2311,7 +2312,7 @@ function renderPBar(){
 function go(dir){
   if(dir>0){
     if(!canProceed()){
-      var hints={2:'O 또는 X를 선택하고 이유를 입력해 주세요.',3:'월 카드를 모두 올바르게 분류하고 확인하기를 눌러 주세요.',4:'다이어그램 애니메이션이 끝날 때까지 기다려 주세요.',5:'예측을 1회 이상 하고 왜 버튼을 눌러 주세요.',6:'슬라이더를 임계값 이상 올리고 두 카드를 모두 끝까지 밀어보세요.',7:'체크리스트를 모두 체크하고 한 문장을 입력해 주세요.'};
+      var hints={2:'O 또는 X를 선택하고 이유를 입력해 주세요.',3:'월 카드를 모두 올바르게 분류하고 확인하기를 눌러 주세요.',4:'다이어그램 애니메이션이 끝날 때까지 기다려 주세요.',5:'예측을 1회 이상 하고 왜 버튼을 눌러 주세요.',6:'슬라이더를 임계값 이상 올려 주세요.',7:'체크리스트를 모두 체크하고 한 문장을 입력해 주세요.'};
       var s=TL[ST.pos]?TL[ST.pos].s:7;
       toast(hints[s]||'조건을 완료해 주세요.');return;
     }
