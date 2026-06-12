@@ -303,6 +303,13 @@ body.present .present-zone{display:block}
 .resp-meta{display:flex;justify-content:space-between;gap:8px;font-weight:900;margin-bottom:4px}
 .resp-text{color:var(--ink-soft);line-height:1.45;word-break:break-word}
 .resp-empty{padding:10px;border-radius:8px;background:rgba(31,58,77,.05);font-size:13px;color:var(--ink-soft)}
+.season-chart-card{padding:14px}
+.season-chart{display:block;width:100%;height:auto;min-height:300px}
+.season-chart text{font-family:var(--font-b);fill:var(--ink)}
+.season-chart .axis-label{font-size:15px;font-weight:900}
+.season-chart .tick{font-size:12px;fill:rgba(18,32,51,.62)}
+.season-chart .point-label{font-size:12px;font-weight:900;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.season-chart .legend-text{font-size:13px;font-weight:900}
 
 /* ── MODALS ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(31,58,77,.45);z-index:400;align-items:center;justify-content:center}
@@ -1620,21 +1627,71 @@ function checkSeasons(){
 }
 function showS3Scatter(){
   var sec=document.getElementById('s3sc');if(!sec)return;
-  sec.style.display='';
+  sec.style.display='block';
   var byC=true;
   sec.innerHTML='<div class="key-msg" style="margin-bottom:13px;">전체로 보면 관계가 있어 보였는데, <strong>같은 계절 안에서는</strong> 관계가 사라졌어요!</div>'
     +'<button class="toggle-btn" id="togBtn">계절별로 보기 켜짐</button>'
-    +'<div class="card"><canvas id="ch3"></canvas></div>';
+    +'<div class="card season-chart-card"><div id="ch3wrap" role="img" aria-label="계절별 난방비와 독감 환자 수 산점도"></div></div>';
   drawS3(true);
   document.getElementById('togBtn').onclick=function(){byC=!byC;this.textContent=byC?'계절별로 보기 켜짐':'전체로 보기 (색 없음)';drawS3(byC);};
 }
+function seasonScatterSVG(byC){
+  var w=720,h=450,p={l:70,r:34,t:28,b:95};
+  var plotW=w-p.l-p.r,plotH=h-p.t-p.b;
+  var xs=DATA.map(function(d){return d.heating;}),ys=DATA.map(function(d){return d.flu;});
+  var xMin=Math.floor(Math.min.apply(null,xs))-2,xMax=Math.ceil(Math.max.apply(null,xs))+2;
+  var yMin=0,yMax=Math.ceil((Math.max.apply(null,ys)+18)/20)*20;
+  function x(v){return p.l+(v-xMin)/(xMax-xMin)*plotW;}
+  function y(v){return p.t+(yMax-v)/(yMax-yMin)*plotH;}
+  function grid(){
+    var out='';
+    for(var i=0;i<=5;i++){
+      var yy=p.t+plotH*i/5,val=Math.round(yMax-(yMax-yMin)*i/5);
+      out+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(w-p.r)+'" y2="'+yy+'" stroke="rgba(18,32,51,.12)" stroke-width="1"/>';
+      out+='<text class="tick" x="'+(p.l-10)+'" y="'+(yy+4)+'" text-anchor="end">'+val+'</text>';
+    }
+    for(var j=0;j<=4;j++){
+      var xx=p.l+plotW*j/4,valx=Math.round(xMin+(xMax-xMin)*j/4);
+      out+='<line x1="'+xx+'" y1="'+p.t+'" x2="'+xx+'" y2="'+(h-p.b)+'" stroke="rgba(18,32,51,.08)" stroke-width="1"/>';
+      out+='<text class="tick" x="'+xx+'" y="'+(h-p.b+22)+'" text-anchor="middle">'+valx+'</text>';
+    }
+    return out;
+  }
+  function point(d){
+    var k=SMAP[d.month],col=byC?SCOL[k]:'#1F3A4D',px=x(d.heating),py=y(d.flu),shape='';
+    if(byC&&k==='m'){
+      shape='<path d="M '+px+' '+(py-11)+' L '+(px+11)+' '+(py+10)+' L '+(px-11)+' '+(py+10)+' Z" fill="'+col+'" stroke="#122033" stroke-width="2"/>';
+    } else if(byC&&k==='s'){
+      shape='<rect x="'+(px-9)+'" y="'+(py-9)+'" width="18" height="18" transform="rotate(45 '+px+' '+py+')" fill="'+col+'" stroke="#122033" stroke-width="2"/>';
+    } else {
+      shape='<circle cx="'+px+'" cy="'+py+'" r="10" fill="'+col+'" stroke="#122033" stroke-width="2"/>';
+    }
+    return '<g>'+shape+'<text class="point-label" x="'+(px+13)+'" y="'+(py-10)+'">'+d.month+'월</text></g>';
+  }
+  function legend(){
+    var ly=h-22;
+    if(!byC)return '<g transform="translate(70 '+ly+')"><circle cx="0" cy="0" r="7" fill="#1F3A4D"/><text class="legend-text" x="14" y="5">전체 데이터</text></g>';
+    return '<g transform="translate(70 '+ly+')">'
+      +'<circle cx="0" cy="0" r="7" fill="'+SCOL.w+'"/><text class="legend-text" x="14" y="5">겨울</text>'
+      +'<path d="M 102 -8 L 110 7 L 94 7 Z" fill="'+SCOL.m+'" stroke="#122033" stroke-width="1.5"/><text class="legend-text" x="120" y="5">봄·가을</text>'
+      +'<rect x="220" y="-7" width="14" height="14" transform="rotate(45 227 0)" fill="'+SCOL.s+'" stroke="#122033" stroke-width="1.5"/><text class="legend-text" x="244" y="5">여름</text>'
+      +'</g>';
+  }
+  return '<svg class="season-chart" viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect x="0" y="0" width="'+w+'" height="'+h+'" rx="8" fill="#fff"/>'
+    +grid()
+    +'<line x1="'+p.l+'" y1="'+p.t+'" x2="'+p.l+'" y2="'+(h-p.b)+'" stroke="#122033" stroke-width="2"/>'
+    +'<line x1="'+p.l+'" y1="'+(h-p.b)+'" x2="'+(w-p.r)+'" y2="'+(h-p.b)+'" stroke="#122033" stroke-width="2"/>'
+    +'<text class="axis-label" x="'+(p.l+plotW/2)+'" y="'+(h-47)+'" text-anchor="middle">난방비(만원)</text>'
+    +'<text class="axis-label" x="20" y="'+(p.t+plotH/2)+'" text-anchor="middle" transform="rotate(-90 20 '+(p.t+plotH/2)+')">독감 환자(명)</text>'
+    +DATA.map(point).join('')
+    +legend()
+    +'</svg>';
+}
 function drawS3(byC){
   if(chart3){chart3.destroy();chart3=null;}
-  var canvas=document.getElementById('ch3');if(!canvas)return;
-  var pts={w:'circle',m:'triangle',s:'rectRot'};
-  var ds=byC?['w','m','s'].map(function(k){return{label:SLBL[k],data:DATA.filter(function(d){return SMAP[d.month]===k;}).map(function(d){return{x:d.heating,y:d.flu};}),backgroundColor:SCOL[k],borderColor:SCOL[k],pointStyle:pts[k],pointRadius:10};}):
-    [{label:'난방비 vs 독감',data:DATA.map(function(d){return{x:d.heating,y:d.flu};}),backgroundColor:'#1F3A4D',borderColor:'#1F3A4D',pointStyle:'circle',pointRadius:8}];
-  chart3=new Chart(canvas.getContext('2d'),{type:'scatter',data:{datasets:ds},options:{responsive:true,scales:{x:{title:{display:true,text:'난방비(만원)'},grid:{color:'rgba(31,58,77,.05)'}},y:{title:{display:true,text:'독감 환자(명)'},grid:{color:'rgba(31,58,77,.05)'}}},plugins:{legend:{position:'bottom'}}}});
+  var wrap=document.getElementById('ch3wrap');if(!wrap)return;
+  wrap.innerHTML=seasonScatterSVG(byC);
 }
 
 /* ══ STEP 4 ══ */
