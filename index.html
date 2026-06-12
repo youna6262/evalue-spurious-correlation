@@ -341,7 +341,7 @@ body.present #content{padding-top:18px;padding-bottom:76px}
 body.present .slide-card{max-width:1120px;min-height:500px}
 body.present .slide-copy{padding:30px 38px}
 body.present .slide-title{font-size:44px!important}
-body.present .slide-body p{font-size:20px!important;line-height:1.52;padding:9px 12px 9px 16px}
+body.present .slide-body p{font-size:20px!important;line-height:1.52;padding:12px 14px}
 body.present .slide-visual{min-height:500px}
 body.present .visual-card{padding:22px}
 button,input,textarea{letter-spacing:0}
@@ -575,10 +575,10 @@ button{touch-action:manipulation}
 .slide-body p{
   position:relative;
   margin:0;
-  padding:12px 14px 12px 18px;
-  border-left:5px solid var(--sky);
-  border-radius:0 8px 8px 0;
-  background:rgba(255,255,255,.72);
+  padding:13px 15px;
+  border:1px solid rgba(18,32,51,.1);
+  border-radius:8px;
+  background:rgba(255,255,255,.78);
   color:var(--ink-soft);
   font-size:20px;
   line-height:1.72;
@@ -1037,7 +1037,7 @@ button{touch-action:manipulation}
   <div id="pbar"><div id="pbar-counter"></div><div id="pbar-note"></div></div>
   <!-- Toast / Banner -->
   <div id="toast" role="alert" aria-live="polite"></div>
-  <div id="banner" role="alert">숨은 원인이 이만큼 강하면, 가짜 관계가 진짜처럼 보여요 — 사람에게도, AI에게도!</div>
+  <div id="banner" role="alert">숨은 원인이 이만큼 강하면, 가짜 관계가 진짜처럼 보여요. 사람에게도, AI에게도!</div>
   <!-- Teacher modal -->
   <div class="modal-bg" id="t-modal">
     <div class="mbox"><p>교사용 화면을 열까요?</p>
@@ -1112,35 +1112,34 @@ function ariMsg(str){
 }
 function ariSVG(expr,sz){
   sz=sz||96;
-  var eyes='',mouth='',brow='';
+  var eyes='',mouth='',extra='';
   if(expr==='conf'){
-    eyes='<path d="M61 81l5 10 11 1-8 7 2 11-10-5-10 5 2-11-8-7 11-1z" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/><path d="M96 81l5 10 11 1-8 7 2 11-10-5-10 5 2-11-8-7 11-1z" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/>';
-    mouth='<path d="M72 113q8 8 18 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+    eyes='<path d="M60 84q8 8 16 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><path d="M91 84q8 8 16 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+    mouth='<path d="M71 106q11 10 23 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+    extra='<path class="ari-spark" d="M119 42l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/>';
   } else if(expr==='enl'){
-    eyes='<circle cx="66" cy="92" r="10" fill="#fff" stroke="var(--ink)" stroke-width="4"/><circle cx="98" cy="92" r="10" fill="#fff" stroke="var(--ink)" stroke-width="4"/><circle cx="66" cy="92" r="4" fill="var(--ink)"/><circle cx="98" cy="92" r="4" fill="var(--ink)"/>';
-    mouth='<circle cx="82" cy="114" r="6" fill="var(--ink)"/>';
+    eyes='<circle cx="67" cy="86" r="8" fill="#fff" stroke="var(--ink)" stroke-width="4"/><circle cx="98" cy="86" r="8" fill="#fff" stroke="var(--ink)" stroke-width="4"/><circle cx="67" cy="86" r="3" fill="var(--ink)"/><circle cx="98" cy="86" r="3" fill="var(--ink)"/>';
+    mouth='<circle cx="82" cy="107" r="5" fill="var(--ink)"/>';
+    extra='<g class="ari-spark"><path d="M116 35h18v18h-18z" rx="5" fill="#fff" stroke="var(--ink)" stroke-width="3"/><path d="M121 44h8" stroke="var(--sun)" stroke-width="4" stroke-linecap="round"/></g>';
   } else {
-    brow='<path d="M58 78q9-6 18-1M90 77q10-5 20 1" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
-    eyes='<circle cx="66" cy="93" r="5" fill="var(--ink)"/><circle cx="99" cy="93" r="5" fill="var(--ink)"/><text x="116" y="68" font-size="28" fill="var(--ink)" font-weight="900">?</text>';
-    mouth='<path d="M74 113q8 4 17 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+    eyes='<circle cx="67" cy="86" r="5" fill="var(--ink)"/><circle cx="98" cy="86" r="5" fill="var(--ink)"/>';
+    mouth='<path d="M73 107q9 5 18 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>';
+    extra='<text x="118" y="57" font-size="25" fill="var(--ink)" font-weight="900">?</text>';
   }
-  return '<svg class="ari-svg" viewBox="0 0 160 160" width="'+sz+'" height="'+sz+'" role="img" aria-label="AI 탐정 아리">'
-    +'<path class="ari-spark" d="M134 22l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="var(--sun)" stroke="var(--ink)" stroke-width="3"/>'
-    +'<path class="ari-spark" d="M26 32l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="var(--mint)" stroke="var(--ink)" stroke-width="3"/>'
+  return '<svg class="ari-svg" viewBox="0 0 160 160" width="'+sz+'" height="'+sz+'" role="img" aria-label="AI 친구 아리">'
+    +'<ellipse cx="82" cy="142" rx="43" ry="9" fill="rgba(18,32,51,.16)"/>'
+    +'<path class="ari-spark" d="M31 31l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="var(--mint)" stroke="var(--ink)" stroke-width="3"/>'
+    +extra
     +'<g class="ari-head">'
-    +'<path d="M60 37h42l9 18H51z" fill="var(--ari-hat)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>'
-    +'<path d="M43 55h76" stroke="var(--ink)" stroke-width="9" stroke-linecap="round"/>'
-    +'<rect x="33" y="57" width="94" height="74" rx="24" fill="var(--ari-shell)" stroke="var(--ink)" stroke-width="4"/>'
-    +'<circle cx="32" cy="91" r="10" fill="var(--ari-shell-dark)" stroke="var(--ink)" stroke-width="4"/>'
-    +'<circle cx="128" cy="91" r="10" fill="var(--ari-shell-dark)" stroke="var(--ink)" stroke-width="4"/>'
-    +'<rect x="48" y="72" width="65" height="50" rx="19" fill="var(--ari-face)" stroke="var(--ink)" stroke-width="4"/>'
-    +brow+eyes+mouth
-    +'<circle cx="51" cy="108" r="6" fill="var(--ari-cheek)"/><circle cx="112" cy="108" r="6" fill="var(--ari-cheek)"/>'
+    +'<path d="M82 36v-14" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>'
+    +'<circle cx="82" cy="18" r="7" fill="var(--sun)" stroke="var(--ink)" stroke-width="4"/>'
+    +'<rect x="31" y="43" width="102" height="92" rx="32" fill="var(--ari-shell)" stroke="var(--ink)" stroke-width="4"/>'
+    +'<rect x="45" y="61" width="74" height="59" rx="23" fill="var(--ari-face)" stroke="var(--ink)" stroke-width="4"/>'
+    +eyes+mouth
+    +'<circle cx="54" cy="102" r="5" fill="var(--ari-cheek)"/><circle cx="111" cy="102" r="5" fill="var(--ari-cheek)"/>'
+    +'<rect x="60" y="124" width="44" height="20" rx="10" fill="#fff" stroke="var(--ink)" stroke-width="4"/>'
+    +'<text x="82" y="139" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="13" font-weight="900" fill="var(--ink)">AI</text>'
     +'</g>'
-    +'<rect x="53" y="127" width="56" height="22" rx="10" fill="#fff" stroke="var(--ink)" stroke-width="4"/>'
-    +'<text x="81" y="144" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="14" font-weight="900" fill="var(--ink)">ARI</text>'
-    +'<path d="M116 117l18 18" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/>'
-    +'<circle cx="111" cy="111" r="17" fill="rgba(255,255,255,.42)" stroke="var(--ink)" stroke-width="5"/>'
     +'</svg>';
 }
 
@@ -1162,7 +1161,7 @@ var TL=[
   /* 2 */ {k:'sl',s:1,title:'사건 파일 1호',subtitle:'어느 마을의 1년 기록',body:bd('한 마을에서 1년 동안 두 가지를 기록했어요.\n① 집마다 낸 **난방비** ② 그달의 **독감 환자 수**.\n표와 그래프를 보고, 두 숫자가 어떻게 움직이는지 관찰해 보세요.')},
   /* 3 */ {k:'ac',s:1},
   /* 4 */ {k:'sl',s:1,title:'관찰 정리',body:bd('발견했나요? 난방비가 오르는 달에는 독감 환자도 늘어나요.\n난방비가 내려가는 달에는 독감 환자도 줄어들고요.\n두 숫자는 마치 **손을 잡고 함께 움직이는 것**처럼 보여요.\n이렇게 함께 움직이는 것을 "관계가 있어 보인다"고 말해요.')},
-  /* 5 */ {k:'sl',s:2,title:'위험한 한 마디',body:bd('누군가 이 데이터를 보고 이렇게 말했어요.\n"난방비 때문에 독감에 걸리는 거야! **난방을 끄면 독감이 줄어들 거야!**"\n정말 그럴까요? 지금 내 생각을 정해 봅시다. 틀려도 괜찮아요 —\n탐정은 처음 추리가 틀리면 고치면 되니까요.')},
+  /* 5 */ {k:'sl',s:2,title:'위험한 한 마디',body:bd('누군가 이 데이터를 보고 이렇게 말했어요.\n"난방비 때문에 독감에 걸리는 거야! **난방을 끄면 독감이 줄어들 거야!**"\n정말 그럴까요? 지금 내 생각을 정해 봅시다.\n틀려도 괜찮아요. 탐정은 처음 추리가 틀리면 고치면 되니까요.')},
   /* 6 */ {k:'ac',s:2},
   /* 7 */ {k:'sl',s:3,title:'탐정의 첫 번째 기술: 나눠 보기',body:bd('데이터 탐정의 첫 번째 기술은 **데이터를 나눠 보는 것**이에요.\n전체로 뭉쳐 보면 안 보이던 것이, 나눠 보면 드러날 때가 있거든요.\n12개의 달을 겨울 / 봄·가을 / 여름 상자에 나눠 담아 봅시다.')},
   /* 8 */ {k:'ac',s:3},
@@ -1170,17 +1169,17 @@ var TL=[
   /* 10 */ {k:'sl',s:4,title:'범인은 따로 있다',body:bd('사실 이 사건에는 지금까지 숨겨 둔 데이터가 하나 있어요.\n바로 **기온**이에요.\n추운 달에는 난방을 많이 틀어서 난방비가 오르고,\n추운 달에는 독감도 유행해서 환자가 늘어나요.')},
   /* 11 */ {k:'ac',s:4},
   /* 12 */ {k:'sl',s:4,title:'숨은 원인',body:bd('난방비와 독감은 서로 원인이 아니었어요.\n**기온이라는 숨은 원인이 둘 다를 움직이고 있었던 거예요.**\n이렇게 둘 다를 움직이는 숨은 원인이 있으면,\n아무 관계 없는 두 가지도 관계가 있는 것처럼 보여요. 이것이 **가짜 관계**예요.')},
-  /* 13 */ {k:'sl',s:4,title:'가짜 관계는 어디에나 있다',body:bd('"소방차가 많이 출동한 불일수록 피해가 크다. 그러니 소방차가 피해를 키운다?"\n— 아니죠! **불의 크기**라는 숨은 원인이 소방차 수와 피해, 둘 다를 키운 거예요.\n숨은 원인을 생각하지 않으면, 엉뚱한 것을 범인으로 지목하게 돼요.')},
-  /* 14 */ {k:'sl',s:5,title:'새로운 손님, 아리',body:bd('우리는 이제 진실을 알아요. 그런데 한 가지 궁금한 게 생겨요.\n**AI라면 어땠을까요?** AI는 똑똑하니까 속지 않았을까요?\nAI 친구 \'아리\'에게 우리가 1단계에서 본 표 — 난방비와 독감 환자 수 — 를 공부시켰어요.\nAI는 데이터 속에서 **패턴을 찾아 배우거든요.** 아리가 무엇을 배웠는지 시험해 봅시다.')},
+  /* 13 */ {k:'sl',s:4,title:'가짜 관계는 어디에나 있다',body:bd('"소방차가 많이 출동한 불일수록 피해가 크다. 그러니 소방차가 피해를 키운다?"\n아니죠! **불의 크기**라는 숨은 원인이 소방차 수와 피해, 둘 다를 키운 거예요.\n숨은 원인을 생각하지 않으면, 엉뚱한 것을 범인으로 지목하게 돼요.')},
+  /* 14 */ {k:'sl',s:5,title:'새로운 손님, 아리',body:bd('우리는 이제 진실을 알아요. 그런데 한 가지 궁금한 게 생겨요.\n**AI라면 어땠을까요?** AI는 똑똑하니까 속지 않았을까요?\nAI 친구 \'아리\'에게 우리가 1단계에서 본 표, 난방비와 독감 환자 수를 공부시켰어요.\nAI는 데이터 속에서 **패턴을 찾아 배우거든요.** 아리가 무엇을 배웠는지 시험해 봅시다.')},
   /* 15 */ {k:'ac',s:5},
   /* 16 */ {k:'sl',s:5,title:'AI도 속았다!',body:bd('아리는 자신 있게 말했어요. "난방비가 높으면 독감 환자가 많아!"\n8월에 난방을 켠 집에도 독감 환자가 많을 거라고 했죠.\n우리가 처음에 속았던 것과 똑같이, **아리도 가짜 관계를 그대로 배웠어요.**\nAI는 마법사가 아니에요. 준 데이터에서 보이는 패턴을 배울 뿐이에요.')},
-  /* 17 */ {k:'sl',s:5,title:'데이터 편향',body:bd('아리가 공부한 표에는 기온이 없었어요. 숨은 원인이 든 데이터만 보고 배운 거죠.\n**한쪽으로 치우친 데이터를 배우면, AI의 판단도 치우쳐요.**\n이것을 **데이터 편향**이라고 해요.\n그래서 AI의 판단을 들을 때도 탐정의 질문이 필요해요 — "너는 무엇을 보고 배웠니?"')},
+  /* 17 */ {k:'sl',s:5,title:'데이터 편향',body:bd('아리가 공부한 표에는 기온이 없었어요. 숨은 원인이 든 데이터만 보고 배운 거죠.\n**한쪽으로 치우친 데이터를 배우면, AI의 판단도 치우쳐요.**\n이것을 **데이터 편향**이라고 해요.\n그래서 AI의 판단을 들을 때도 이렇게 물어야 해요. "너는 무엇을 보고 배웠니?"')},
   /* 18 */ {k:'sl',s:6,title:'탐정의 두 번째 기술: 힘 시험하기',body:bd('숨은 원인이 \'있다\'는 것만으로는 부족해요.\n그 원인의 **힘이 얼마나 센지**가 중요하거든요.\n만약 기온의 힘이 아주 약했다면, 가짜 관계도 생기지 않았을 거예요.\n이번에는 여러분이 직접 기온의 힘을 조절해 봅시다. 아리도 옆에서 지켜볼 거예요.')},
   /* 19 */ {k:'ac',s:6},
   /* 20 */ {k:'sl',s:6,title:'방금 무슨 일이?',body:bd('봤나요? 숨은 원인의 힘이 약할 때는 아무 관계도 없던 두 숫자가,\n힘이 세지자 점점 한 줄로 모이면서 **관계가 있는 것처럼 변했어요.**\n아리의 생각도 함께 변했죠. 힘이 약할 땐 "모르겠어"라더니, 힘이 세지자 "확실해!"라고 했어요.\n**숨은 원인이 셀수록, 사람도 AI도 더 강하게 속아요.**')},
   /* 21 */ {k:'sl',s:6,title:'결론을 시험하는 법',body:bd('어떤 결론이 믿을 만한지 시험하는 방법이 있어요.\n그 결론을 **숨은 원인으로 밀어 보는 거예요.**\n조금만 밀어도 넘어지는 결론이 있고, 세게 밀어도 버티는 결론이 있어요.\n직접 밀어서 확인해 봅시다!')},
   /* 22 */ {k:'sl',s:6,title:'튼튼한 결론, 무너지는 결론',body:bd('**쉽게 무너지는 결론**: 약한 숨은 원인만 있어도 설명이 다 되어 버리는 결론.\n(난방비→독감은 기온이 조금만 작동해도 무너졌죠.)\n**튼튼한 결론**: 아주 세고 상상하기 힘든 숨은 원인이 있어야만 무너지는 결론.\n(손씻기→독감 감소를 무너뜨릴 만한 숨은 원인은 떠올리기 어려워요.)\n결론의 가치는 "맞다/틀리다"가 아니라 **"얼마나 버티는가"**로도 잴 수 있어요.')},
-  /* 23 */ {k:'sl',s:7,title:'처음 추리로 돌아가기',body:bd('좋은 탐정은 사건이 끝나면 자기 추리를 돌아봐요.\n아까 "난방을 끄면 독감이 줄어들까?"에 여러분은 뭐라고 답했나요?\n지금도 같은 생각인지 확인해 봅시다. 생각이 바뀌어도, 그대로여도 좋아요 —\n중요한 건 **끝까지 따져 보고 정했는가**예요.')},
+  /* 23 */ {k:'sl',s:7,title:'처음 추리로 돌아가기',body:bd('좋은 탐정은 사건이 끝나면 자기 추리를 돌아봐요.\n아까 "난방을 끄면 독감이 줄어들까?"에 여러분은 뭐라고 답했나요?\n지금도 같은 생각인지 확인해 봅시다. 생각이 바뀌어도, 그대로여도 좋아요.\n중요한 건 **끝까지 따져 보고 정했는가**예요.')},
   /* 24 */ {k:'ac',s:7},
   /* 25 */ {k:'sl',s:7,title:'데이터 탐정의 세 가지 질문',body:bd('앞으로 "○○하면 △△가 된다!"라는 말을 만나면, 세 가지를 물어보세요.\n① 숨은 원인이 있을까?\n② 그 원인은 얼마나 셀까?\n③ 이 결론은 튼튼할까, 쉽게 무너질까?\n이 세 질문은 사람의 말에도, **AI의 판단에도** 똑같이 필요해요.\n세 질문을 품고 있는 사람이 진짜 데이터 탐정이에요.')}
 ];
@@ -1317,7 +1316,7 @@ function slideVisual(item,pos){
     return '<div class="visual-card ari-stage">'
       +'<div class="visual-title">새로운 손님</div>'
       +ariSVG(pos===16||pos===17?'enl':'conf',188)
-      +'<div class="ari-nameplate">AI 탐정 아리</div>'
+      +'<div class="ari-nameplate">AI 친구 아리</div>'
       +'</div>';
   }
   if(s===6){
@@ -1349,7 +1348,7 @@ function renderActivity(c,s){
 
 /* ══ STEP 1 ══ */
 function a1(c){
-  c.innerHTML='<h2 class="step-title">1단계 — 데이터 살펴보기</h2>'
+  c.innerHTML='<h2 class="step-title">1단계: 데이터 살펴보기</h2>'
     +'<p class="step-subtitle">표와 그래프에서 두 값의 움직임을 관찰해 보세요.</p>'
     +'<div class="s1-grid">'
     +'<div class="card"><table class="data-table"><thead><tr><th>월</th><th>난방비(만원)</th><th>독감 환자(명)</th></tr></thead><tbody id="s1tb"></tbody></table></div>'
@@ -1376,7 +1375,7 @@ function a1(c){
 
 /* ══ STEP 2 ══ */
 function a2(c){
-  c.innerHTML='<h2 class="step-title">2단계 — 내 생각 정하기</h2>'
+  c.innerHTML='<h2 class="step-title">2단계: 내 생각 정하기</h2>'
     +'<div style="max-width:560px;margin:0 auto;text-align:center;">'
     +'<p class="q-text">난방을 끄면 독감 환자가 줄어들까요?</p>'
     +'<div class="ox-row"><button class="ox-btn" id="bO">O</button><button class="ox-btn" id="bX">X</button></div>'
@@ -1394,7 +1393,7 @@ function applyOX(v){
 
 /* ══ STEP 3 ══ */
 function a3(c){
-  c.innerHTML='<h2 class="step-title">3단계 — 계절별로 나눠보기</h2>'
+  c.innerHTML='<h2 class="step-title">3단계: 계절별로 나눠보기</h2>'
     +'<p class="step-subtitle">월 카드를 탭해 선택하고, 계절 상자를 탭해 분류하세요.</p>'
     +'<div class="card" style="margin-bottom:13px;"><div class="m-pool" id="pool"></div></div>'
     +'<div class="sboxes">'
@@ -1470,7 +1469,7 @@ function drawS3(byC){
 
 /* ══ STEP 4 ══ */
 function a4(c){
-  c.innerHTML='<h2 class="step-title">4단계 — 진짜 원인 찾기</h2>'
+  c.innerHTML='<h2 class="step-title">4단계: 진짜 원인 찾기</h2>'
     +'<div class="diag-wrap">'
     +'<svg id="diag" viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">'
     +'<defs><marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#4A7FA5"/></marker></defs>'
@@ -1499,7 +1498,7 @@ function a4(c){
 /* ══ STEP 5 ══ */
 function a5(c){
   var ari=trainAri(DATA);
-  c.innerHTML='<h2 class="step-title">5단계 — AI도 속을까?</h2>'
+  c.innerHTML='<h2 class="step-title">5단계: AI도 속을까?</h2>'
     +'<p class="step-subtitle">아리에게 예측을 시키고, 왜 그렇게 생각하는지 물어보세요.</p>'
     +'<div class="s5-learn" id="s5learn">'
     +'<div class="ari-wrap">'
@@ -1548,7 +1547,7 @@ function a5(c){
     +'<p style="font-weight:700;margin-bottom:8px;">아리가 배운 패턴 (난방비→독감 예측선)</p>'
     +'<canvas id="ch5why" height="200"></canvas>'
     +'</div>'
-    +'<div class="concept-card">한쪽으로 치우친 데이터를 배우면, AI의 판단도 치우쳐요. 이것을 <strong>데이터 편향</strong>이라고 해요. 그래서 AI의 판단을 들을 때도 물어야 해요 — "너는 무엇을 보고 배웠니?"</div>'
+    +'<div class="concept-card">한쪽으로 치우친 데이터를 배우면, AI의 판단도 치우쳐요. 이것을 <strong>데이터 편향</strong>이라고 해요. 그래서 AI의 판단을 들을 때도 물어야 해요. "너는 무엇을 보고 배웠니?"</div>'
     +'</div>'
     +'</div>';
 
@@ -1653,7 +1652,7 @@ function a6(c){
   var hs=d6.map(function(d){return d.heating;});
   var minH=Math.min.apply(null,hs),maxH=Math.max.apply(null,hs);
 
-  c.innerHTML='<h2 class="step-title">6단계 — 숨은 원인의 힘 시험하기</h2>'
+  c.innerHTML='<h2 class="step-title">6단계: 숨은 원인의 힘 시험하기</h2>'
     +'<p class="step-subtitle">슬라이더로 기온의 힘을 조절해 보세요. 아리도 함께 변해요.</p>'
     +'<div class="s6-top">'
     +'<div class="card" style="flex:1;"><canvas id="ch6" height="240"></canvas></div>'
@@ -1818,7 +1817,7 @@ function showBanner(){
 /* ══ STEP 7 ══ */
 function a7(c){
   var al={O:'O (줄어든다)',X:'X (줄어들지 않는다)',null:'(선택 안 함)'};
-  c.innerHTML='<h2 class="step-title">7단계 — 정리하기</h2>'
+  c.innerHTML='<h2 class="step-title">7단계: 정리하기</h2>'
     +'<div style="max-width:600px;margin:0 auto;">'
     +'<div class="prev-card">'
     +'<p style="font-weight:700;margin-bottom:7px;">📝 2단계에서 내 생각</p>'
@@ -1873,10 +1872,10 @@ function showCompletion(){
     +'<div style="max-width:480px;margin:0 auto 20px;">'
     +'<div class="ari-wrap" style="flex-direction:row;justify-content:center;gap:16px;margin-bottom:16px;">'
     +ariSVG('enl',72)
-    +'<div class="bubble" style="text-align:left;">고마워! 너희 덕분에 내가 무엇을 못 봤는지 알게 됐어. 다음에 나에게 물어볼 땐 꼭 이렇게 물어 줘 — "너는 무엇을 보고 배웠니?"</div>'
+    +'<div class="bubble" style="text-align:left;">고마워! 너희 덕분에 내가 무엇을 못 봤는지 알게 됐어. 다음에 나에게 물어볼 땐 꼭 이렇게 물어 줘. "너는 무엇을 보고 배웠니?"</div>'
     +'</div>'
     +'<div class="sum-cards">'
-    +'<div class="sum-item"><div class="sum-lbl">처음 생각 (2단계)</div><div class="sum-val">'+(al[ST.myAnswer])+' — '+esc(ST.myReason)+'</div></div>'
+    +'<div class="sum-item"><div class="sum-lbl">처음 생각 (2단계)</div><div class="sum-val">'+(al[ST.myAnswer])+': '+esc(ST.myReason)+'</div></div>'
     +'<div class="sum-item"><div class="sum-lbl">지금 생각 (7단계)</div><div class="sum-val">'+(al[ST.finalAnswer])+'</div></div>'
     +'<div class="sum-item"><div class="sum-lbl">한 문장 정리</div><div class="sum-val">'+esc(ST.summary)+'</div></div>'
     +'</div></div>'
