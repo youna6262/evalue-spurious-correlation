@@ -41,7 +41,13 @@ async function relayToSheets(action, payload) {
   try {
     data = JSON.parse(text);
   } catch {
-    data = { ok: false, message: text || "시트 응답을 읽지 못했어요." };
+    const denied = /Access Denied|You need access|requesting access/i.test(text);
+    data = {
+      ok: false,
+      message: denied
+        ? "Apps Script 웹앱 액세스 권한을 '모든 사용자'로 다시 배포해 주세요."
+        : (text || "시트 응답을 읽지 못했어요."),
+    };
   }
   if (!response.ok || !data.ok) {
     const err = new Error(data.message || "Google Sheets 저장소와 연결하지 못했어요.");
