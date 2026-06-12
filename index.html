@@ -283,6 +283,8 @@ body.present .present-zone{display:block}
 .g-item.cur{background:rgba(46,125,107,.1);border-color:var(--accent)}
 #auto-btn{display:block;width:100%;padding:9px;background:var(--midseason);color:white;border-radius:8px;font-size:14px;font-weight:600;margin-top:5px}
 #tclose{width:100%;padding:9px;background:rgba(31,58,77,.07);border-radius:8px;font-size:14px;color:var(--ink);margin-top:13px}
+.teacher-tool{background:var(--midseason);color:white;border-color:transparent}
+[hidden]{display:none!important}
 
 /* ── MODALS ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(31,58,77,.45);z-index:400;align-items:center;justify-content:center}
@@ -1022,6 +1024,7 @@ button{touch-action:manipulation}
     <nav id="progress-bar"></nav>
     <div class="header-btns">
       <button class="hdr-btn" id="present-btn">발표</button>
+      <button class="hdr-btn teacher-tool" id="season-auto-head-btn" hidden>계절 나눠보기</button>
       <button class="hdr-btn" id="teacher-btn">교사용</button>
     </div>
   </header>
@@ -1040,7 +1043,9 @@ button{touch-action:manipulation}
   <div id="banner" role="alert">숨은 원인이 이만큼 강하면, 가짜 관계가 진짜처럼 보여요. 사람에게도, AI에게도!</div>
   <!-- Teacher modal -->
   <div class="modal-bg" id="t-modal">
-    <div class="mbox"><p>교사용 화면을 열까요?</p>
+    <div class="mbox"><p>교사용 입장 코드를 입력해 주세요.</p>
+      <input type="password" id="teacher-code" class="reason-in" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="입장 코드" autocomplete="off" aria-label="교사용 입장 코드">
+      <div id="teacher-code-error" style="min-height:22px;margin:8px 0 10px;color:var(--warn);font-size:14px;font-weight:700;"></div>
       <div class="mbts"><button class="mconf" id="t-conf">열기</button><button class="mcanc" id="t-canc">취소</button></div>
     </div>
   </div>
@@ -1055,7 +1060,7 @@ button{touch-action:manipulation}
     <h3>📚 교사용 패널</h3>
     <div class="ts"><h4>데이터 원본</h4><div id="t-data"></div></div>
     <div class="ts"><h4>단계별 해설</h4><div id="t-guide"></div></div>
-    <div id="t-s3" class="ts" style="display:none"><h4>3단계 도구</h4><button id="auto-btn">자동 분류 (시연용)</button></div>
+    <div id="t-s3" class="ts" style="display:none"><h4>3단계 도구</h4><button id="auto-btn">계절 나눠보기</button></div>
     <div id="t-s6" class="ts" style="display:none"><h4>6단계 슬라이더</h4><p id="t-sl"></p></div>
     <button id="tclose">패널 닫기</button>
   </aside>
@@ -1194,7 +1199,7 @@ var ST={
   sliderVal:0,threshCrossed:false,
   pushAG:0,pushBG:0,pushedA:false,pushedB:false,expandA:false,expandB:false,
   finalAnswer:null,checklist:[false,false,false],summary:'',
-  teacherMode:false,presentMode:false
+  teacherMode:false,teacherUnlocked:false,presentMode:false
 };
 
 /* ══ PROGRESS BAR ══ */
@@ -1894,11 +1899,24 @@ function doRestart(){
 }
 
 /* ══ TEACHER ══ */
+var TEACHER_CODE='2026';
 var GUIDES={0:'[도입] 데이터 탐정 콘셉트로 시작하세요.',1:'두 변수가 함께 움직임을 관찰하게 하세요. \'원인\'이라는 말은 아직 쓰지 마세요.',2:'오답을 환영하세요. 후반 단계에서 스스로 수정하는 경험이 목표입니다.',3:'계절 내부에서 관계가 사라짐 = 허위 상관의 발견.',4:'교란변수를 \'둘 다를 움직이는 숨은 원인\'으로만 부르세요.',5:'AI를 비난하는 분위기가 되지 않게 하세요. 발문: "아리는 무엇을 보고 배웠을까요? 무엇을 못 봤을까요?"',6:'발문: "기온이 범인인 건 알았어요. 기온의 힘이 아주 약했다면 어땠을까요?" 아리의 말풍선 변화를 함께 관찰하세요.',7:'체크리스트 세 질문이 이 수업의 최종 산출물입니다. 사람과 AI에게 같은 질문이 필요하다는 점으로 마무리하세요.'};
+function isSeasonActivity(){
+  var item=TL[ST.pos];
+  return !!(item&&item.k==='ac'&&item.s===3);
+}
+function syncTeacherControls(){
+  var autoHead=document.getElementById('season-auto-head-btn');
+  if(autoHead)autoHead.hidden=!(ST.teacherUnlocked&&isSeasonActivity());
+  var teacherBtn=document.getElementById('teacher-btn');
+  if(teacherBtn)teacherBtn.textContent=ST.teacherUnlocked&&ST.teacherMode?'교사용 닫기':'교사용';
+}
 function renderTeacher(){
   var panel=document.getElementById('tpanel');
-  panel.classList.toggle('open',ST.teacherMode);
-  if(!ST.teacherMode)return;
+  var open=ST.teacherUnlocked&&ST.teacherMode;
+  panel.classList.toggle('open',open);
+  syncTeacherControls();
+  if(!open)return;
   var curStep=TL[ST.pos]?TL[ST.pos].s:7;
   var td=document.getElementById('t-data');
   if(td&&!td.querySelector('table')){
@@ -1909,8 +1927,60 @@ function renderTeacher(){
   }
   var tg=document.getElementById('t-guide');
   if(tg)tg.innerHTML=Object.keys(GUIDES).map(function(s){return'<div class="g-item'+(+s===curStep?' cur':'')+'"><strong>'+s+'단계:</strong> '+GUIDES[s]+'</div>';}).join('');
-  var ts3=document.getElementById('t-s3');if(ts3)ts3.style.display=curStep===3?'':'none';
+  var ts3=document.getElementById('t-s3');if(ts3)ts3.style.display=isSeasonActivity()?'':'none';
   var ts6=document.getElementById('t-s6');if(ts6){ts6.style.display=curStep===6?'':'none';var ti=document.getElementById('t-sl');if(ti)ti.textContent='현재: '+ST.sliderVal.toFixed(2)+' / 임계값: '+THRESHOLD;}
+}
+function openTeacherModal(){
+  var modal=document.getElementById('t-modal');
+  var input=document.getElementById('teacher-code');
+  var error=document.getElementById('teacher-code-error');
+  if(error)error.textContent='';
+  if(input)input.value='';
+  modal.classList.add('open');
+  setTimeout(function(){if(input)input.focus();},0);
+}
+function closeTeacherModal(){
+  var modal=document.getElementById('t-modal');
+  var input=document.getElementById('teacher-code');
+  var error=document.getElementById('teacher-code-error');
+  modal.classList.remove('open');
+  if(input)input.value='';
+  if(error)error.textContent='';
+}
+function unlockTeacher(){
+  var input=document.getElementById('teacher-code');
+  var error=document.getElementById('teacher-code-error');
+  var code=input?input.value.trim():'';
+  if(code!==TEACHER_CODE){
+    if(error)error.textContent='입장 코드가 맞지 않아요.';
+    if(input)input.select();
+    toast('교사용 입장 코드가 필요해요.');
+    return;
+  }
+  ST.teacherUnlocked=true;
+  ST.teacherMode=true;
+  closeTeacherModal();
+  renderTeacher();
+  if(ST.presentMode)renderPBar();
+  toast('교사용 도구가 열렸어요.');
+}
+function autoSortSeasons(){
+  if(!ST.teacherUnlocked){
+    openTeacherModal();
+    return;
+  }
+  if(!isSeasonActivity()){
+    toast('3단계 계절 분류 화면에서 사용할 수 있어요.');
+    return;
+  }
+  DATA.forEach(function(d){ST.seasonMap[d.month]=SMAP[d.month];});
+  ST.scatterShown=true;
+  ST.selCard=null;
+  refreshCards();
+  showS3Scatter();
+  updNext();
+  renderTeacher();
+  toast('계절별로 한 번에 나눴어요.');
 }
 
 /* ══ PRESENT MODE ══ */
@@ -1920,7 +1990,7 @@ function renderPBar(){
   var pbar=document.getElementById('pbar-counter');
   if(pbar)pbar.textContent='슬라이드 '+cur+' / '+total;
   var pnote=document.getElementById('pbar-note');
-  if(pnote&&ST.teacherMode){var curStep=TL[ST.pos]?TL[ST.pos].s:7;pnote.textContent='💡 '+GUIDES[curStep];}
+  if(pnote&&ST.teacherUnlocked&&ST.teacherMode){var curStep=TL[ST.pos]?TL[ST.pos].s:7;pnote.textContent='💡 '+GUIDES[curStep];}
   else if(pnote)pnote.textContent='';
 }
 
@@ -1971,13 +2041,21 @@ document.addEventListener('keydown',function(e){
 });
 
 document.getElementById('teacher-btn').onclick=function(){
-  if(!ST.teacherMode)document.getElementById('t-modal').classList.add('open');
-  else{ST.teacherMode=false;renderTeacher();}
+  if(!ST.teacherUnlocked){
+    openTeacherModal();
+    return;
+  }
+  ST.teacherMode=!ST.teacherMode;
+  renderTeacher();
+  if(ST.presentMode)renderPBar();
 };
-document.getElementById('t-conf').onclick=function(){document.getElementById('t-modal').classList.remove('open');ST.teacherMode=true;renderTeacher();};
-document.getElementById('t-canc').onclick=function(){document.getElementById('t-modal').classList.remove('open');};
-document.getElementById('tclose').onclick=function(){ST.teacherMode=false;renderTeacher();};
-document.getElementById('auto-btn').onclick=function(){DATA.forEach(function(d){ST.seasonMap[d.month]=SMAP[d.month];});ST.scatterShown=true;ST.selCard=null;refreshCards();showS3Scatter();updNext();};
+document.getElementById('t-conf').onclick=unlockTeacher;
+document.getElementById('t-canc').onclick=closeTeacherModal;
+document.getElementById('teacher-code').addEventListener('keydown',function(e){if(e.key==='Enter')unlockTeacher();});
+document.getElementById('teacher-code').addEventListener('input',function(){document.getElementById('teacher-code-error').textContent='';});
+document.getElementById('tclose').onclick=function(){ST.teacherMode=false;renderTeacher();if(ST.presentMode)renderPBar();};
+document.getElementById('auto-btn').onclick=autoSortSeasons;
+document.getElementById('season-auto-head-btn').onclick=autoSortSeasons;
 document.getElementById('r-conf').onclick=function(){document.getElementById('r-modal').classList.remove('open');doRestart();};
 document.getElementById('r-canc').onclick=function(){document.getElementById('r-modal').classList.remove('open');};
 document.getElementById('pz-left').onclick=function(){go(-1);};
