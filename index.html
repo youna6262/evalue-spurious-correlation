@@ -268,6 +268,15 @@ body.present .present-zone{display:block}
 .sum-lbl{font-size:12px;font-weight:700;color:rgba(31,58,77,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .sum-val{font-size:17px}
 .restart-btn{padding:13px 34px;background:var(--accent);color:white;border-radius:var(--r);font-size:17px;font-weight:600;min-height:44px}
+.submit-card{background:white;border:2px solid var(--ink);border-radius:8px;box-shadow:4px 5px 0 var(--ink);padding:16px 18px;margin:18px auto 20px;text-align:left}
+.submit-card label{display:block;font-size:14px;font-weight:900;margin-bottom:7px}
+.submit-row{display:flex;gap:10px;align-items:center}
+.submit-row input{flex:1;min-width:0}
+.submit-row button{min-height:44px;padding:9px 16px;background:var(--mint);color:white;border:2px solid var(--ink);border-radius:8px;box-shadow:3px 3px 0 var(--ink);font-weight:900}
+.submit-row button:disabled{background:#eef2f4;color:#8090a0;box-shadow:none;border-color:#c9d2da;cursor:not-allowed}
+.submit-status{min-height:22px;margin-top:9px;font-size:14px;font-weight:800;color:var(--ink-soft)}
+.submit-status.ok{color:var(--accent)}
+.submit-status.err{color:var(--warn)}
 
 /* ── TEACHER PANEL ── */
 #tpanel{position:fixed;top:var(--hh);right:-380px;width:380px;height:calc(100vh - var(--hh));background:white;border-left:2px solid rgba(31,58,77,.12);overflow-y:auto;transition:right .3s;z-index:90;padding:18px;box-shadow:-4px 0 18px rgba(31,58,77,.08)}
@@ -285,6 +294,15 @@ body.present .present-zone{display:block}
 #tclose{width:100%;padding:9px;background:rgba(31,58,77,.07);border-radius:8px;font-size:14px;color:var(--ink);margin-top:13px}
 .teacher-tool{background:var(--midseason);color:white;border-color:transparent}
 [hidden]{display:none!important}
+.board-actions{display:flex;gap:8px;margin-bottom:9px}
+.board-actions button{flex:1;padding:8px;background:#fff;border:2px solid var(--ink);border-radius:8px;box-shadow:2px 2px 0 var(--ink);font-size:13px;font-weight:900;color:var(--ink)}
+.board-status{font-size:13px;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
+.board-status.err{color:var(--warn)}
+.board-list{display:grid;gap:8px;max-height:260px;overflow:auto;padding-right:3px}
+.resp-item{border:1px solid rgba(31,58,77,.16);border-left:5px solid var(--accent);border-radius:8px;background:#fff;padding:9px 10px;font-size:13px}
+.resp-meta{display:flex;justify-content:space-between;gap:8px;font-weight:900;margin-bottom:4px}
+.resp-text{color:var(--ink-soft);line-height:1.45;word-break:break-word}
+.resp-empty{padding:10px;border-radius:8px;background:rgba(31,58,77,.05);font-size:13px;color:var(--ink-soft)}
 
 /* ── MODALS ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(31,58,77,.45);z-index:400;align-items:center;justify-content:center}
@@ -1061,6 +1079,11 @@ canvas{display:block;width:100%;max-width:100%}
     <h3>📚 교사용 패널</h3>
     <div class="ts"><h4>데이터 원본</h4><div id="t-data"></div></div>
     <div class="ts"><h4>단계별 해설</h4><div id="t-guide"></div></div>
+    <div class="ts"><h4>학생 응답 데이터 보드</h4>
+      <div class="board-actions"><button id="resp-refresh">새로고침</button><button id="resp-csv">CSV 다운로드</button></div>
+      <div id="resp-status" class="board-status">응답 보드를 불러올 수 있어요.</div>
+      <div id="resp-list" class="board-list"><div class="resp-empty">아직 불러온 응답이 없어요.</div></div>
+    </div>
     <div id="t-s3" class="ts" style="display:none"><h4>3단계 도구</h4><button id="auto-btn">계절 나눠보기</button></div>
     <div id="t-s6" class="ts" style="display:none"><h4>6단계 슬라이더</h4><p id="t-sl"></p></div>
     <button id="tclose">패널 닫기</button>
@@ -1339,6 +1362,8 @@ var ST={
   sliderVal:0,threshCrossed:false,
   pushAG:0,pushBG:0,pushedA:false,pushedB:false,expandA:false,expandB:false,
   finalAnswer:null,checklist:[false,false,false],summary:'',
+  studentName:'',submitStatus:'idle',submitMessage:'',submitted:false,
+  responses:[],responseStatus:'응답 보드를 불러올 수 있어요.',
   teacherMode:false,teacherUnlocked:false,presentMode:false
 };
 
@@ -2002,6 +2027,89 @@ function togChk(i){
   if(el){el.classList.toggle('chked',ST.checklist[i]);el.setAttribute('aria-checked',ST.checklist[i]);el.querySelector('.chk-ico').textContent=ST.checklist[i]?'✓':'';}
   updNext();
 }
+function responsePayload(){
+  return {
+    studentName:ST.studentName.trim(),
+    firstAnswer:ST.myAnswer||'',
+    firstReason:ST.myReason.trim(),
+    finalAnswer:ST.finalAnswer||'',
+    changed:ST.finalAnswer!==null&&ST.myAnswer!==null&&ST.finalAnswer!==ST.myAnswer,
+    checklist:ST.checklist.slice(),
+    summary:ST.summary.trim(),
+    completedStep:'완료',
+    browserTime:new Date().toISOString(),
+    userAgent:navigator.userAgent
+  };
+}
+function updateSubmitUI(){
+  var btn=document.getElementById('submit-response');
+  var status=document.getElementById('submit-status');
+  if(btn){
+    btn.disabled=ST.submitted||ST.submitStatus==='saving';
+    btn.textContent=ST.submitted?'제출 완료':ST.submitStatus==='saving'?'제출 중':'응답 제출';
+  }
+  if(status){
+    status.className='submit-status '+(ST.submitStatus==='ok'?'ok':ST.submitStatus==='error'?'err':'');
+    status.textContent=ST.submitMessage||'제출하면 선생님 데이터 보드에 모여요.';
+  }
+}
+async function submitResponse(){
+  if(ST.submitted)return;
+  if(!ST.studentName.trim()){
+    ST.submitStatus='error';ST.submitMessage='학생 번호 또는 닉네임을 입력해 주세요.';updateSubmitUI();return;
+  }
+  ST.submitStatus='saving';ST.submitMessage='응답을 제출하는 중이에요.';updateSubmitUI();
+  try{
+    var res=await fetch('/api/responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(responsePayload())});
+    var data=await res.json().catch(function(){return{};});
+    if(!res.ok||!data.ok)throw new Error(data.message||'응답 저장에 실패했어요.');
+    ST.submitted=true;ST.submitStatus='ok';ST.submitMessage='제출됐어요. 선생님 데이터 보드에 모였어요.';
+    toast('응답이 제출됐어요.');
+  }catch(err){
+    ST.submitStatus='error';ST.submitMessage=err.message||'응답 저장에 실패했어요.';
+  }
+  updateSubmitUI();
+}
+function renderResponses(){
+  var list=document.getElementById('resp-list');
+  var status=document.getElementById('resp-status');
+  if(status){
+    status.className='board-status '+(ST.responseStatus.indexOf('실패')>=0||ST.responseStatus.indexOf('필요')>=0?'err':'');
+    status.textContent=ST.responseStatus;
+  }
+  if(!list)return;
+  if(!ST.responses.length){list.innerHTML='<div class="resp-empty">아직 응답이 없어요.</div>';return;}
+  list.innerHTML=ST.responses.slice().reverse().map(function(r){
+    return '<div class="resp-item">'
+      +'<div class="resp-meta"><span>'+esc(r.studentName||'이름 없음')+'</span><span>'+esc(r.finalAnswer||'-')+'</span></div>'
+      +'<div class="resp-text">처음: '+esc(r.firstAnswer||'-')+' / 변화: '+esc(r.changedText||r.changed||'-')+'</div>'
+      +'<div class="resp-text">'+esc(r.summary||'(정리 없음)')+'</div>'
+      +'</div>';
+  }).join('');
+}
+async function loadResponses(){
+  ST.responseStatus='응답을 불러오는 중이에요.';renderResponses();
+  try{
+    var res=await fetch('/api/responses?code='+encodeURIComponent(TEACHER_CODE),{cache:'no-store'});
+    var data=await res.json().catch(function(){return{};});
+    if(!res.ok||!data.ok)throw new Error(data.message||'응답 보드를 불러오지 못했어요.');
+    ST.responses=data.responses||[];
+    ST.responseStatus='응답 '+ST.responses.length+'개를 불러왔어요.';
+  }catch(err){
+    ST.responses=[];
+    ST.responseStatus=err.message||'응답 보드 불러오기에 실패했어요.';
+  }
+  renderResponses();
+}
+function downloadResponsesCsv(){
+  if(!ST.responses.length){toast('다운로드할 응답이 아직 없어요.');return;}
+  var headers=['응답ID','제출시각','학생번호/닉네임','처음선택','처음이유','최종선택','생각변화','숨은원인체크','힘체크','튼튼함체크','한문장정리','완료단계','브라우저시간','기기정보'];
+  var keys=['id','submittedAt','studentName','firstAnswer','firstReason','finalAnswer','changedText','checkHiddenCause','checkStrength','checkRobust','summary','completedStep','browserTime','userAgent'];
+  var rows=[headers].concat(ST.responses.map(function(r){return keys.map(function(k){return r[k]||'';});}));
+  var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='evalue-responses.csv';a.click();URL.revokeObjectURL(a.href);
+}
 
 /* ══ COMPLETION ══ */
 function showCompletion(){
@@ -2023,16 +2131,23 @@ function showCompletion(){
     +'<div class="sum-item"><div class="sum-lbl">처음 생각 (2단계)</div><div class="sum-val">'+(al[ST.myAnswer])+': '+esc(ST.myReason)+'</div></div>'
     +'<div class="sum-item"><div class="sum-lbl">지금 생각 (7단계)</div><div class="sum-val">'+(al[ST.finalAnswer])+'</div></div>'
     +'<div class="sum-item"><div class="sum-lbl">한 문장 정리</div><div class="sum-val">'+esc(ST.summary)+'</div></div>'
+    +'</div>'
+    +'<div class="submit-card">'
+    +'<label for="student-name">학생 번호 또는 닉네임</label>'
+    +'<div class="submit-row"><input type="text" id="student-name" class="reason-in" maxlength="40" placeholder="예: 3번 김OO" value="'+esc(ST.studentName)+'"><button id="submit-response" '+(ST.submitted||ST.submitStatus==='saving'?'disabled':'')+'>'+(ST.submitted?'제출 완료':ST.submitStatus==='saving'?'제출 중':'응답 제출')+'</button></div>'
+    +'<div id="submit-status" class="submit-status '+(ST.submitStatus==='ok'?'ok':ST.submitStatus==='error'?'err':'')+'">'+esc(ST.submitMessage||'제출하면 선생님 데이터 보드에 모여요.')+'</div>'
     +'</div></div>'
     +'<button class="restart-btn" id="rstBtn">처음으로 돌아가기</button>'
     +'</div>';
   document.getElementById('footer').style.display='none';
   document.getElementById('rstBtn').onclick=function(){document.getElementById('r-modal').classList.add('open');};
+  document.getElementById('student-name').addEventListener('input',function(e){ST.studentName=e.target.value;});
+  document.getElementById('submit-response').onclick=submitResponse;
 }
 
 function doRestart(){
   destroyCharts();
-  Object.assign(ST,{pos:0,myAnswer:null,myReason:'',seasonMap:{},scatterShown:false,selCard:null,s4done:false,ariLearnDone:false,currentH:20,card3used:false,aiPredicted:false,aiAsked:false,ariEnl:false,sliderVal:0,threshCrossed:false,pushAG:0,pushBG:0,pushedA:false,pushedB:false,expandA:false,expandB:false,finalAnswer:null,checklist:[false,false,false],summary:''});
+  Object.assign(ST,{pos:0,myAnswer:null,myReason:'',seasonMap:{},scatterShown:false,selCard:null,s4done:false,ariLearnDone:false,currentH:20,card3used:false,aiPredicted:false,aiAsked:false,ariEnl:false,sliderVal:0,threshCrossed:false,pushAG:0,pushBG:0,pushedA:false,pushedB:false,expandA:false,expandB:false,finalAnswer:null,checklist:[false,false,false],summary:'',studentName:'',submitStatus:'idle',submitMessage:'',submitted:false});
   document.getElementById('footer').style.display='';
   document.getElementById('banner').classList.remove('show');
   render();
@@ -2067,6 +2182,7 @@ function renderTeacher(){
   }
   var tg=document.getElementById('t-guide');
   if(tg)tg.innerHTML=Object.keys(GUIDES).map(function(s){return'<div class="g-item'+(+s===curStep?' cur':'')+'"><strong>'+s+'단계:</strong> '+GUIDES[s]+'</div>';}).join('');
+  renderResponses();
   var ts3=document.getElementById('t-s3');if(ts3)ts3.style.display=isSeasonActivity()?'':'none';
   var ts6=document.getElementById('t-s6');if(ts6){ts6.style.display=curStep===6?'':'none';var ti=document.getElementById('t-sl');if(ti)ti.textContent='현재: '+ST.sliderVal.toFixed(2)+' / 임계값: '+THRESHOLD;}
 }
@@ -2196,6 +2312,8 @@ document.getElementById('teacher-code').addEventListener('input',function(){docu
 document.getElementById('tclose').onclick=function(){ST.teacherMode=false;renderTeacher();if(ST.presentMode)renderPBar();};
 document.getElementById('auto-btn').onclick=autoSortSeasons;
 document.getElementById('season-auto-head-btn').onclick=autoSortSeasons;
+document.getElementById('resp-refresh').onclick=loadResponses;
+document.getElementById('resp-csv').onclick=downloadResponsesCsv;
 document.getElementById('r-conf').onclick=function(){document.getElementById('r-modal').classList.remove('open');doRestart();};
 document.getElementById('r-canc').onclick=function(){document.getElementById('r-modal').classList.remove('open');};
 document.getElementById('pz-left').onclick=function(){go(-1);};
